@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compressly — Kompresi File Cepat & Mudah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+    <!-- <link rel="stylesheet" href="css/output.css" /> -->
+  </head>
+  <body class="relative">
+    <!-- NAV -->
+    <nav>
+      <div
+        class="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-2">
+          <div
+            class="w-7 h-7 rounded-lg flex items-center justify-center"
+            style="background: var(--accent)"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M7 1v8M4 6l3 3 3-3M2 11h10"
+                stroke="white"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <span class="font-bold text-base tracking-tight">Compressly</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <a
+            href="#cara-pakai"
+            class="text-sm hidden sm:block"
+            style="color: var(--text-muted)"
+            >Cara Pakai</a
+          >
+          <span class="badge badge-green">Gratis &amp; Aman</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-8 text-center">
+      <div class="reveal inline-block mb-4">
+        <span class="badge badge-blue text-xs tracking-wide uppercase"
+          >100% Proses di Browser — Privasi Terjaga</span
+        >
+      </div>
+      <h1
+        class="reveal text-4xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight"
+      >
+        Kompresi File,<br /><span style="color: var(--accent)"
+          >Tanpa Ribet.</span
+        >
+      </h1>
+      <p
+        class="reveal text-base sm:text-lg max-w-xl mx-auto mb-8"
+        style="color: var(--text-muted); line-height: 1.7"
+      >
+        Kurangi ukuran file PDF dan gambar langsung di browser - cepat, aman,
+        dan privat.
+      </p>
+    </section>
+
+    <!-- MAIN TOOL -->
+    <section class="max-w-3xl mx-auto px-4 sm:px-6 pb-16">
+      <div class="card p-6 sm:p-8 reveal">
+        <!-- Tabs -->
+        <div
+          class="flex items-center gap-2 mb-7 p-1.5 rounded-2xl"
+          style="
+            background: var(--bg);
+            border: 1px solid var(--border);
+            width: fit-content;
+          "
+        >
+          <button
+            class="tab-pill active"
+            id="tab-pdf"
+            onclick="switchMode('pdf')"
+          >
+            📄 Kompresi PDF
+          </button>
+          <button class="tab-pill" id="tab-img" onclick="switchMode('image')">
+            🖼️ Kompresi Gambar
+          </button>
+        </div>
+
+        <!-- Banner PDF -->
+        <div id="banner-pdf" class="info-banner blue mb-6">
+          <span style="font-size: 15px; flex-shrink: 0; margin-top: 1px"
+            >ℹ️</span
+          >
+          <span
+            >Optimasi PDF dilakukan tanpa mengubah isi atau kualitas visual.
+            Pengurangan ukuran umumnya kecil dan bergantung pada struktur
+            file.</span
+          >
+        </div>
+
+        <!-- Banner Image -->
+        <div id="banner-img" class="info-banner blue mb-6 hidden">
+          <span style="font-size: 15px; flex-shrink: 0; margin-top: 2px"
+            >ℹ️</span
+          >
+          <div>
+            Gambar <strong>≤ 5 MB</strong> tidak akan diubah. Untuk file yang
+            lebih besar, sistem secara otomatis mengoptimalkan kualitas tanpa
+            mengubah resolusi, menjaga gambar tetap tajam dengan ukuran jauh
+            lebih ringan. Untuk efisiensi maksimal, gambar dikonversi ke JPG,
+            kecuali PNG dengan transparansi yang tetap dipertahankan.
+            Penghematan biasanya bisa mencapai 50–80% tanpa perbedaan visual
+            yang signifikan.
+            <div class="flex flex-wrap gap-1.5 mt-3">
+              <span class="fmt-tag">JPG</span><span class="fmt-tag">JPEG</span
+              ><span class="fmt-tag">PNG</span> <span class="fmt-tag">WebP</span
+              ><span class="fmt-tag">GIF</span><span class="fmt-tag">BMP</span
+              ><span class="fmt-tag">TIFF</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Drop Zone -->
+        <div class="dropzone p-8 sm:p-10 text-center mb-5" id="dropzone">
+          <input type="file" id="fileInput" accept="application/pdf" />
+          <div
+            class="mb-3 mx-auto w-12 h-12 rounded-2xl flex items-center justify-center"
+            style="background: var(--accent-light)"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 3v12M7 10l5 5 5-5"
+                stroke="var(--accent)"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M3 18v1.5A1.5 1.5 0 004.5 21h15a1.5 1.5 0 001.5-1.5V18"
+                stroke="var(--accent)"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
+          <p class="font-600 text-sm mb-1" style="color: var(--text-primary)">
+            Seret &amp; lepas file di sini
+          </p>
+          <p class="text-xs mb-4" style="color: var(--text-muted)">
+            atau klik untuk memilih file
+          </p>
+          <span id="accepted-label" class="badge badge-green"
+            >PDF diterima</span
+          >
+        </div>
+
+        <!-- File info -->
+        <div id="file-info" class="hidden mb-5">
+          <div
+            class="flex items-center gap-3 p-4 rounded-xl"
+            style="background: var(--bg); border: 1px solid var(--border)"
+          >
+            <div
+              class="icon-box"
+              style="background: var(--info-light)"
+              id="file-icon-box"
+            >
+              📄
+            </div>
+            <div class="flex-1 min-w-0">
+              <p
+                class="text-sm font-500 truncate"
+                id="file-name"
+                style="color: var(--text-primary)"
+              >
+                —
+              </p>
+              <p
+                class="text-xs mt-0.5 mono"
+                id="file-size"
+                style="color: var(--text-muted)"
+              >
+                —
+              </p>
+            </div>
+            <button
+              onclick="clearFile()"
+              class="btn-ghost"
+              style="width: auto; padding: 8px 14px; font-size: 12px"
+            >
+              ✕ Hapus
+            </button>
+          </div>
+        </div>
+
+        <!-- Compress button -->
+        <button
+          class="btn-primary py-4 text-base"
+          id="compressBtn"
+          onclick="startCompress()"
+          disabled
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path
+              d="M9 1v10M5 7l4 4 4-4"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M2 14v1a2 2 0 002 2h10a2 2 0 002-2v-1"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+          Kompresi Sekarang
+        </button>
+
+        <!-- Progress -->
+        <div id="progress-section" class="hidden mt-6">
+          <div
+            class="flex justify-between text-xs mb-2"
+            style="color: var(--text-muted)"
+          >
+            <span id="progress-label">Memproses...</span>
+            <span class="mono" id="progress-pct">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              id="progress-fill"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Already small -->
+        <div id="already-small" class="info-banner green hidden mt-6 slide-up">
+          <span style="font-size: 15px; flex-shrink: 0">✅</span>
+          <span
+            >File gambar Anda sudah <strong>≤ 5 MB</strong> — tidak perlu
+            dikompresi. Gunakan file aslinya langsung.</span
+          >
+        </div>
+
+        <!-- Results -->
+        <div id="results-section" class="hidden mt-7 slide-up">
+          <div class="flex items-center gap-2 mb-4">
+            <div
+              class="w-5 h-5 rounded-full flex items-center justify-center text-xs"
+              style="background: var(--accent-light)"
+            >
+              ✓
+            </div>
+            <p class="font-600 text-sm" style="color: var(--accent)">
+              Kompresi berhasil!
+            </p>
+          </div>
+          <div class="grid grid-cols-3 gap-3 mb-5">
+            <div
+              class="p-3 rounded-xl text-center"
+              style="background: var(--bg); border: 1px solid var(--border)"
+            >
+              <p class="text-xs mb-1" style="color: var(--text-muted)">
+                Ukuran Asli
+              </p>
+              <p
+                class="mono font-500 text-sm"
+                id="stat-original"
+                style="color: var(--text-primary)"
+              >
+                —
+              </p>
+            </div>
+            <div
+              class="p-3 rounded-xl text-center"
+              style="background: var(--accent-light); border: 1px solid #c0dd97"
+            >
+              <p class="text-xs mb-1" style="color: var(--accent)">
+                Setelah Kompresi
+              </p>
+              <p
+                class="mono font-500 text-sm"
+                id="stat-compressed"
+                style="color: var(--accent)"
+              >
+                —
+              </p>
+            </div>
+            <div
+              class="p-3 rounded-xl text-center"
+              style="background: var(--bg); border: 1px solid var(--border)"
+            >
+              <p class="text-xs mb-1" style="color: var(--text-muted)">Hemat</p>
+              <p
+                class="mono font-600 text-sm"
+                id="stat-saved"
+                style="color: var(--accent)"
+              >
+                —
+              </p>
+            </div>
+          </div>
+          <a
+            id="downloadBtn"
+            download
+            class="btn-primary py-4 text-sm mb-3"
+            style="display: flex"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M8 1v9M5 7l3 3 3-3"
+                stroke="white"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M2 13v1a1 1 0 001 1h10a1 1 0 001-1v-1"
+                stroke="white"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+            </svg>
+            Unduh File Terkompresi
+          </a>
+          <button onclick="resetTool()" class="btn-ghost">
+            ↺ Kompresi File Baru
+          </button>
+        </div>
+
+        <!-- Error -->
+        <div id="error-section" class="info-banner red hidden mt-5">
+          <span style="font-size: 15px; flex-shrink: 0">⚠️</span>
+          <span id="error-msg">Terjadi kesalahan.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="cara-pakai" class="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
+      <h2 class="text-2xl font-bold text-center mb-10 reveal">Cara Pakai</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="card p-6 reveal text-center">
+          <div
+            class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4"
+            style="background: var(--info-light)"
+          >
+            📂
+          </div>
+          <h3 class="font-600 mb-2 text-sm">1. Pilih File</h3>
+          <p class="text-xs leading-relaxed" style="color: var(--text-muted)">
+            Seret &amp; lepas atau klik untuk memilih PDF atau gambar dari
+            perangkat Anda.
+          </p>
+        </div>
+        <div class="card p-6 reveal text-center">
+          <div
+            class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4"
+            style="background: var(--accent-light)"
+          >
+            ⚡
+          </div>
+          <h3 class="font-600 mb-2 text-sm">2. Kompresi Otomatis</h3>
+          <p class="text-xs leading-relaxed" style="color: var(--text-muted)">
+            Sistem menentukan cara terbaik memperkecil ukuran tanpa merusak
+            kualitas secara visual.
+          </p>
+        </div>
+        <div class="card p-6 reveal text-center">
+          <div
+            class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4"
+            style="background: #faeeda"
+          >
+            ⬇️
+          </div>
+          <h3 class="font-600 mb-2 text-sm">3. Unduh</h3>
+          <p class="text-xs leading-relaxed" style="color: var(--text-muted)">
+            Unduh file hasil kompresi langsung ke perangkat Anda.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-20">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="card p-5 reveal flex gap-4 items-start">
+          <div
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+            style="background: var(--accent-light)"
+          >
+            🔒
+          </div>
+          <div>
+            <h3 class="font-600 text-sm mb-1">Privasi 100%</h3>
+            <p class="text-xs leading-relaxed" style="color: var(--text-muted)">
+              Semua proses di browser Anda. File tidak pernah diunggah ke server
+              mana pun.
+            </p>
+          </div>
+        </div>
+        <div class="card p-5 reveal flex gap-4 items-start">
+          <div
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+            style="background: #faeeda"
+          >
+            💎
+          </div>
+          <div>
+            <h3 class="font-600 text-sm mb-1">Kualitas Terjaga</h3>
+            <p class="text-xs leading-relaxed" style="color: var(--text-muted)">
+              Gambar ≤ 5 MB tidak disentuh sama sekali. Yang lebih besar
+              dikecilkan seminimal mungkin.
+            </p>
+          </div>
+        </div>
+        <div class="card p-5 reveal flex gap-4 items-start">
+          <div
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+            style="background: var(--info-light)"
+          >
+            🎨
+          </div>
+          <div>
+            <h3 class="font-600 text-sm mb-1">Multi Format Gambar</h3>
+            <p class="text-xs leading-relaxed" style="color: var(--text-muted)">
+              Mendukung JPG, JPEG, PNG, WebP, GIF, BMP, dan TIFF.
+            </p>
+          </div>
+        </div>
+        <div class="card p-5 reveal flex gap-4 items-start">
+          <div
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+            style="background: var(--danger-light)"
+          >
+            🆓
+          </div>
+          <div>
+            <h3 class="font-600 text-sm mb-1">Gratis Selamanya</h3>
+            <p class="text-xs leading-relaxed" style="color: var(--text-muted)">
+              Tanpa biaya, tanpa akun. Buka browser dan langsung pakai.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer
+      class="border-t text-center py-8"
+      style="border-color: var(--border)"
+    >
+      <p class="text-xs" style="color: var(--text-muted)">
+        © 2025 Compressly — Dibuat dengan ❤️ untuk pengguna Indonesia
+      </p>
+      <p class="text-xs mt-1" style="color: var(--text-muted)">
+        File Anda tidak pernah meninggalkan perangkat Anda.
+      </p>
+    </footer>
+
+    <script src="js/script.js"></script>
+  </body>
+</html>
