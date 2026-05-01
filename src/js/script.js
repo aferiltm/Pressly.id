@@ -194,128 +194,191 @@ async function startCompress() {
 
 //   return resultBlob;
 // }
-async function compressPDF(file) {
-  const MAX_PDF_BYTES = 50 * 1024 * 1024;
+// async function compressPDF(file) {
+//   const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
+//   const arrayBuffer = await file.arrayBuffer();
+//   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+//   const { PDFDocument } = PDFLib;
+//   const newPdf = await PDFDocument.create();
+
+//   const targetPerPage = MAX_PDF_BYTES / pdf.numPages;
+
+//   let totalSize = 0;
+
+//   for (let i = 0; i < pdf.numPages; i++) {
+//     setProgress(
+//       20 + (i / pdf.numPages) * 60,
+//       `Halaman ${i + 1}/${pdf.numPages}`,
+//     );
+
+//     const page = await pdf.getPage(i + 1);
+
+//     const scale = file.size > 80 * 1024 * 1024 ? 1.2 : 1.5;
+//     const viewport = page.getViewport({ scale });
+
+//     const canvas = document.createElement("canvas");
+//     const ctx = canvas.getContext("2d");
+
+//     canvas.width = viewport.width;
+//     canvas.height = viewport.height;
+
+//     await page.render({ canvasContext: ctx, viewport }).promise;
+
+//     let lo = 0.4;
+//     let hi = 0.9;
+//     let bestBlob = null;
+
+//     for (let j = 0; j < 6; j++) {
+//       const q = (lo + hi) / 2;
+
+//       const blob = await new Promise((res) =>
+//         canvas.toBlob(res, "image/jpeg", q),
+//       );
+
+//       if (blob.size <= targetPerPage) {
+//         bestBlob = blob;
+//         lo = q;
+//       } else {
+//         hi = q;
+//       }
+//     }
+
+//     if (!bestBlob) {
+//       bestBlob = await new Promise((res) =>
+//         canvas.toBlob(res, "image/jpeg", 0.6),
+//       );
+//     }
+
+//     totalSize += bestBlob.size;
+
+//     const imgBytes = await bestBlob.arrayBuffer();
+//     const img = await newPdf.embedJpg(imgBytes);
+
+//     const pageNew = newPdf.addPage([img.width, img.height]);
+//     pageNew.drawImage(img, {
+//       x: 0,
+//       y: 0,
+//       width: img.width,
+//       height: img.height,
+//     });
+
+//     // 🔥 anti freeze
+//     await new Promise((r) => setTimeout(r, 0));
+//   }
+
+//   if (totalSize > MAX_PDF_BYTES) {
+//     return await compressPDFWithLowerQuality(file);
+//   }
+
+//   const pdfBytes = await newPdf.save();
+//   return new Blob([pdfBytes], { type: "application/pdf" });
+// }
+
+// ─── PDF COMPRESSION (Adaptive Quality) ──────────────────────────────────────
+// Strategi: selalu render canvas untuk kompresi maksimal.
+// Scale & quality range disesuaikan otomatis berdasarkan ukuran file.
+// Scale minimum 1.4x agar teks tetap tajam dan terbaca.
+
+async function compressPDF(file) {
+  const MB = 1024 * 1024;
+
+  // Tentukan parameter berdasarkan ukuran file
+  let SCALE, Q_MIN, Q_MAX;
+
+  if (file.size < 5 * MB) {
+    SCALE = 2.0;
+    Q_MIN = 0.82;
+    Q_MAX = 0.92;
+  } else if (file.size < 20 * MB) {
+    SCALE = 1.8;
+    Q_MIN = 0.78;
+    Q_MAX = 0.9;
+  } else if (file.size < 50 * MB) {
+    SCALE = 1.6;
+    Q_MIN = 0.72;
+    Q_MAX = 0.88;
+  } else {
+    SCALE = 1.4;
+    Q_MIN = 0.65;
+    Q_MAX = 0.82;
+  }
+
+  setProgress(8, "Membaca PDF...");
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
   const { PDFDocument } = PDFLib;
   const newPdf = await PDFDocument.create();
 
-  const targetPerPage = MAX_PDF_BYTES / pdf.numPages;
-
-  let totalSize = 0;
+  // Target ukuran per halaman: file asli dibagi jumlah halaman × faktor kompresi
+  // Faktor 0.45 artinya target ~45% dari ukuran asli
+  const targetPerPage = (file.size * 0.45) / pdf.numPages;
 
   for (let i = 0; i < pdf.numPages; i++) {
-    setProgress(
-      20 + (i / pdf.numPages) * 60,
-      `Halaman ${i + 1}/${pdf.numPages}`,
-    );
+    const pct = Math.round(12 + (i / pdf.numPages) * 78);
+    setProgress(pct, `Halaman ${i + 1} / ${pdf.numPages}`);
 
     const page = await pdf.getPage(i + 1);
-
-    const scale = file.size > 80 * 1024 * 1024 ? 1.2 : 1.5;
-    const viewport = page.getViewport({ scale });
+    const viewport = page.getViewport({ scale: SCALE });
 
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-
     canvas.width = viewport.width;
     canvas.height = viewport.height;
 
+    // Background putih — penting untuk kontras teks
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     await page.render({ canvasContext: ctx, viewport }).promise;
 
-    let lo = 0.4;
-    let hi = 0.9;
+    // Binary search quality untuk mencapai target ukuran per halaman
+    let lo = Q_MIN;
+    let hi = Q_MAX;
     let bestBlob = null;
 
-    for (let j = 0; j < 6; j++) {
+    for (let j = 0; j < 8; j++) {
       const q = (lo + hi) / 2;
-
       const blob = await new Promise((res) =>
         canvas.toBlob(res, "image/jpeg", q),
       );
 
       if (blob.size <= targetPerPage) {
         bestBlob = blob;
-        lo = q;
+        lo = q; // masih muat, coba naikkan kualitas
       } else {
-        hi = q;
+        hi = q; // terlalu besar, turunkan
       }
     }
 
+    // Fallback: jika binary search tidak menemukan titik pas, pakai Q_MIN
     if (!bestBlob) {
       bestBlob = await new Promise((res) =>
-        canvas.toBlob(res, "image/jpeg", 0.6),
+        canvas.toBlob(res, "image/jpeg", Q_MIN),
       );
     }
 
-    totalSize += bestBlob.size;
-
     const imgBytes = await bestBlob.arrayBuffer();
     const img = await newPdf.embedJpg(imgBytes);
+    const p = newPdf.addPage([img.width, img.height]);
+    p.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
 
-    const pageNew = newPdf.addPage([img.width, img.height]);
-    pageNew.drawImage(img, {
-      x: 0,
-      y: 0,
-      width: img.width,
-      height: img.height,
-    });
-
-    // 🔥 anti freeze
+    // Anti-freeze UI
     await new Promise((r) => setTimeout(r, 0));
   }
 
-  if (totalSize > MAX_PDF_BYTES) {
-    return await compressPDFWithLowerQuality(file);
+  setProgress(93, "Menyimpan PDF...");
+  const pdfBytes = await newPdf.save();
+  const result = new Blob([pdfBytes], { type: "application/pdf" });
+
+  // Safety: jika hasil lebih besar dari aslinya (jarang terjadi), kembalikan asli
+  if (result.size >= file.size) {
+    return new Blob([arrayBuffer], { type: "application/pdf" });
   }
 
-  const pdfBytes = await newPdf.save();
-  return new Blob([pdfBytes], { type: "application/pdf" });
-}
-
-async function compressPDFWithLowerQuality(file) {
-  const MAX_PDF_BYTES = 50 * 1024 * 1024;
-
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-  const { PDFDocument } = PDFLib;
-  const newPdf = await PDFDocument.create();
-
-  for (let i = 0; i < pdf.numPages; i++) {
-    const page = await pdf.getPage(i + 1);
-    const viewport = page.getViewport({ scale: 1.2 });
-
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-
-    await page.render({ canvasContext: ctx, viewport }).promise;
-
-    const blob = await new Promise((res) =>
-      canvas.toBlob(res, "image/jpeg", 0.6),
-    );
-
-    const imgBytes = await blob.arrayBuffer();
-    const img = await newPdf.embedJpg(imgBytes);
-
-    const pageNew = newPdf.addPage([img.width, img.height]);
-    pageNew.drawImage(img, {
-      x: 0,
-      y: 0,
-      width: img.width,
-      height: img.height,
-    });
-  }
-
-  const pdfBytes = await newPdf.save();
-
-  return new Blob([pdfBytes], { type: "application/pdf" });
+  return result;
 }
 
 // ─── IMAGE COMPRESSION (Binary-search to ≤5 MB) ───────────────────────────────
